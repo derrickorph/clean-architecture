@@ -2,7 +2,7 @@
   <app-layout title="Dashboard">
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-        Dashboard
+        Modification de {{ courseData.title }}
       </h2>
     </template>
 
@@ -20,12 +20,6 @@
             sm:rounded-lg
           "
         >
-          <div
-            v-if="$page.props.flash.success"
-            class="bg-green-200 text-green-500 p-3 my-3"
-          >
-            {{ $page.props.flash.success }}
-          </div>
           <form @submit.prevent="submit">
             <div>
               <jet-label for="title" value="Titre de la formation" />
@@ -34,7 +28,7 @@
                 type="text"
                 class="mt-1 block w-full"
                 autofocus
-                v-model="form.title"
+                v-model="courseData.title"
               />
               <div class="my-1">
                 <jet-input-error v-if="errors.title" class="text-red-600">
@@ -62,7 +56,7 @@
                   shadow-sm
                   w-full
                 "
-                v-model="form.description"
+                v-model="courseData.description"
                 rows="3"
               ></textarea>
               <div class="my-1">
@@ -73,7 +67,10 @@
             </div>
             <div class="mt-4">
               <h2 class="text-2xl">Episodes de la formation</h2>
-              <div v-for="(episode, index) in form.episodes" v-bind:key="index">
+              <div
+                v-for="(episode, index) in courseData.episodes"
+                v-bind:key="index"
+              >
                 <div class="mt-4">
                   <jet-label
                     :for="'title-' + index"
@@ -84,7 +81,7 @@
                     type="text"
                     class="mt-1 block w-full"
                     autofocus
-                    v-model="form.episodes[index].title"
+                    v-model="courseData.episodes[index].title"
                   />
                   <div class="my-1">
                     <jet-input-error
@@ -105,7 +102,7 @@
                     type="url"
                     class="mt-1 block w-full"
                     autofocus
-                    v-model="form.episodes[index].video_url"
+                    v-model="courseData.episodes[index].video_url"
                   />
                   <div class="my-1">
                     <jet-input-error
@@ -136,7 +133,7 @@
                       w-full
                       mb-4
                     "
-                    v-model="form.episodes[index].description"
+                    v-model="courseData.episodes[index].description"
                     rows="3"
                   ></textarea>
                   <div class="my-1">
@@ -151,14 +148,14 @@
               </div>
             </div>
             <jet-button
-              v-if="form.episodes.length < 15"
+              v-if="courseData.episodes.length < 15"
               class="bg-green-600 mt-2 mx-3"
               @click.prevent="add"
             >
               +
             </jet-button>
             <jet-button
-              v-if="form.episodes.length > 1"
+              v-if="courseData.episodes.length > 1"
               class="bg-red-600 mt-2"
               @click.prevent="remove"
             >
@@ -168,10 +165,10 @@
             <div class="flex items-center justify-end mt-4">
               <jet-button
                 class="ml-4"
-                :class="{ 'opacity-25': form.processing }"
-                :disabled="form.processing"
+                :class="{ 'opacity-25': courseData.processing }"
+                :disabled="courseData.processing"
               >
-                Créer une formation
+                Modifier une formation
               </jet-button>
             </div>
           </form>
@@ -192,6 +189,7 @@ import JetInputError from "@/Jetstream/InputError.vue";
 export default defineComponent({
   props: {
     errors: Object,
+    course: Object,
   },
   components: {
     AppLayout,
@@ -203,26 +201,25 @@ export default defineComponent({
   },
   data() {
     return {
-      form: {
-        title: null,
-        description: null,
-        episodes: [{ title: null, description: null, video_url: null }],
-      },
+      courseData: this.course,
     };
   },
   methods: {
     submit() {
-      this.$inertia.post("/courses", this.form);
+      this.$inertia.patch(
+        "/course/edit/" + this.courseData.id,
+        this.courseData
+      );
     },
     add() {
-      this.form.episodes.push({
+      this.courseData.episodes.push({
         title: null,
         description: null,
         video_url: null,
       });
     },
     remove() {
-      this.form.episodes.pop();
+      this.courseData.episodes.pop();
     },
   },
 });

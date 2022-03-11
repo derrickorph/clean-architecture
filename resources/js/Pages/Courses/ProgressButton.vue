@@ -13,7 +13,7 @@
     "
     @click="toggleProgress()"
   >
-    Terminer
+    {{ this.isWatched ? "Terminer" : "Terminer ?" }}
   </button>
 </template>
 
@@ -25,6 +25,7 @@ export default defineComponent({
   data() {
     return {
       watchedEp: this.watchedEpisodes,
+      isWatched: null,
     };
   },
   methods: {
@@ -33,16 +34,26 @@ export default defineComponent({
         .post("/toggleProgress", {
           episodeId: this.episodeId,
         })
-        .then((result) => {
-          console.log(result);
+        .then((response) => {
+          if (response.status == 200) {
+            this.isWatched = !this.isWatched;
+            // mitt.emit("foo", response.data);
+            mitt.emit("toggleProgress", response.data);
+          }
+          console.log("OK");
         })
         .catch((err) => {
           console.log(err);
         });
     },
-    mounted() {
-      console.log(this.watchedEp);
+    isWatchedEpisode() {
+      return this.watchedEp.find((episode) => episode.id === this.episodeId)
+        ? true
+        : false;
     },
+  },
+  mounted() {
+    this.isWatched = this.isWatchedEpisode();
   },
 });
 </script>

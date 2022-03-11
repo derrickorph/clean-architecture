@@ -9,6 +9,7 @@ use App\Contracts\CourseContract;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Doctrine\Instantiator\Exception\InvalidArgumentException;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class CategoryRepository
@@ -37,7 +38,16 @@ class CourseRepository extends BaseRepository implements CourseContract
      */
     public function listCourses(string $order = 'id', string $sort = 'desc', array $columns = ['*'])
     {
-        return $this->model::with('user')->withCount('episodes')->get();
+        return $this->model::with('user')
+            ->select('courses.*', DB::raw(
+                '(SELECT COUNT(DISTINCT(user_id))
+            FROM completions
+            INNER JOIN episodes ON completions.episode_id= episodes.id
+            WHERE episodes.course_id= courses.id
+
+            ) AS participants'
+            ))
+            ->withCount('episodes')->latest()->paginate(5);
     }
 
     /**
@@ -64,17 +74,10 @@ class CourseRepository extends BaseRepository implements CourseContract
         try {
             $collection = collect($params);
 
-            $logo = null;
-
-            if ($collection->has('logo') && ($params['logo'] instanceof  UploadedFile)) {
-                $logo = $this->uploadOne($params['logo'], 'courses');
-            }
-
-            $merge = $collection->merge(compact('logo'));
-
-            $course = new Course($merge->all());
+            $course = new Course($collection->all());
 
             $course->save();
+
 
             return $course;
         } catch (QueryException $exception) {
@@ -90,20 +93,11 @@ class CourseRepository extends BaseRepository implements CourseContract
     {
         $course = $this->findCourseById($params['id']);
 
-        $collection = collect($params)->except('_token');
+        $collection = collect($params);
 
-        if ($collection->has('logo') && ($params['logo'] instanceof  UploadedFile)) {
+        $course->update($collection->all());
+        $course->episodes()->delete();
 
-            if ($course->logo != null) {
-                $this->deleteOne($course->logo);
-            }
-
-            $logo = $this->uploadOne($params['logo'], 'courses');
-        }
-
-        $merge = $collection->merge(compact('logo'));
-
-        $course->update($merge->all());
 
         return $course;
     }

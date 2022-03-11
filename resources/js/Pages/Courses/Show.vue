@@ -28,6 +28,9 @@
           {{ this.courseShow.episodes[this.currentKey].description }}
         </div>
       </div>
+      <div class="py-6">
+        <progress-bar :watched-episodes="watched" :episodes="course.episodes" />
+      </div>
 
       <div class="mt-6">
         <div class="flex flex-col">
@@ -118,11 +121,13 @@
 import { defineComponent } from "vue";
 import AppLayout from "@/Layouts/AppLayout.vue";
 import ProgressButton from "./ProgressButton.vue";
+import ProgressBar from "./ProgressBar.vue";
 
 export default defineComponent({
   components: {
     AppLayout,
     ProgressButton,
+    ProgressBar,
   },
   props: ["course", "watched"],
 
@@ -143,7 +148,7 @@ export default defineComponent({
     },
   },
   mounted() {
-    console.log(this.watched);
+    console.log("ok");
   },
 });
 </script>

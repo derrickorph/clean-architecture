@@ -29,7 +29,11 @@ Route::get('/courses', [CourseController::class, 'index'])->name('courses.index'
 
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+
     Route::get('/course/{id}', [CourseController::class, 'show'])->name('courses.show');
+    Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');
+    Route::get('/course/edit/{id}', [CourseController::class, 'edit'])->name('courses.edit');
+    Route::patch('/course/edit/{id}', [CourseController::class, 'update'])->name('courses.update');
     Route::post('/toggleProgress', [CourseController::class, 'toggleProgress'])->name('courses.toggle');
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
